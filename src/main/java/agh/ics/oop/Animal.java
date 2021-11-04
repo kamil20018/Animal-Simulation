@@ -3,13 +3,19 @@ package agh.ics.oop;
 public class Animal {
     private MapDirection direction = MapDirection.NORTH;
     private Vector2d position = new Vector2d(2, 2);
+    private IWorldMap map;
+    public Animal (IWorldMap map, Vector2d initialPosition){
+        this.map = map;
+        this.position = initialPosition;
+        this.direction = MapDirection.NORTH;
+    }
 
     public String toString(){
-        return "Position: " + position.toString() + ", Direction: " + direction.toString();
+        return direction.toString();
     }
 
     private boolean isAt(Vector2d position){
-        return this.position == position;
+        return this.position.equals(position);
     }
 
     public void move(MoveDirection direction){
@@ -21,10 +27,19 @@ public class Animal {
             case FORWARD -> testSum = this.position.add(this.direction.toUnitVector());
             case BACKWARD -> testSum = this.position.add(this.direction.toUnitVector().opposite());
         }
-
-        if(testSum != null && testSum.x >= 0 && testSum.x <= 4 && testSum.y >= 0 && testSum.y <= 4){
+        Vector2d lowerLeft = new Vector2d(0, 0);
+        Vector2d upperRight = new Vector2d(4, 4);
+        if(testSum != null && map.canMoveTo(testSum)){
             this.position = testSum;
         }
 
+    }
+
+    public MapDirection getDirection(){
+        return this.direction;
+    }
+
+    public Vector2d getPosition() {
+        return this.position;
     }
 }

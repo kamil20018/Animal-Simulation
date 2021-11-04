@@ -7,7 +7,9 @@ public class AnimalTest {
     @Test
     public void animalTest(){
         OptionsParser parser = new OptionsParser();
-        Animal cat = new Animal();
+        IWorldMap map = new RectangularMap(4, 4);
+        Vector2d initialPosition = new Vector2d(2, 2);
+        Animal cat = new Animal(map, initialPosition);
         MoveDirection[] directions = parser.parse("f f f asdfe dkje r");
         for(MoveDirection dir: directions){
             cat.move(dir);
