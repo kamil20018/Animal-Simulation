@@ -27,8 +27,6 @@ public class Animal {
             case FORWARD -> testSum = this.position.add(this.direction.toUnitVector());
             case BACKWARD -> testSum = this.position.add(this.direction.toUnitVector().opposite());
         }
-        Vector2d lowerLeft = new Vector2d(0, 0);
-        Vector2d upperRight = new Vector2d(4, 4);
         if(testSum != null && map.canMoveTo(testSum)){
             this.position = testSum;
         }
