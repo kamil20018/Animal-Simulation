@@ -1,48 +1,43 @@
 package agh.ics.oop;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-abstract class AbstractWorldMap implements IWorldMap{
-    protected List<Animal> animals = new LinkedList<Animal>();
-    protected List<Grass> grasses = new LinkedList<>();
+abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
+    Map<Vector2d, Animal> animals = new HashMap<>();
+    Map<Vector2d, Grass> grasses = new HashMap<>();
 
 
     public boolean place(Animal animal){
         Vector2d animalPos = animal.getPosition();
         if(canMoveTo(animalPos)){
-            animals.add(animal);
+            animal.addObserver(this);
+            animals.put(animalPos, animal);
             return true;
         }
         return false;
     }
 
     public boolean isOccupied(Vector2d position){
-        for(Animal animal : animals){
-            if(animal.getPosition().equals(position)){
-                return true;
-            }
+        if(animals.containsKey(position)){
+            return true;
         }
 
-        for(Grass grass : grasses){
-            if(grass.getPosition().equals(position)){
-                return true;
-            }
+        if(grasses.containsKey(position)){
+            return true;
         }
         return false;
     }
 
     public Object objectAt(Vector2d position) {
-        for(Animal animal : animals){
-            if(animal.getPosition().equals(position)){
-                return animal;
-            }
+        if(animals.containsKey(position)){
+            return animals.get(position);
         }
 
-        for(Grass grass : grasses){
-            if(grass.getPosition().equals(position)){
-                return grass;
-            }
+        if(grasses.containsKey(position)){
+            return grasses.get(position);
         }
         return null;
     }
@@ -54,5 +49,11 @@ abstract class AbstractWorldMap implements IWorldMap{
         MapVisualizer visualizer = new MapVisualizer(map);
         Vector2d[] bounds = getBounds();
         return visualizer.draw(bounds[0], bounds[1]);
+    }
+
+    public void positionChanged(Vector2d oldPosition, Vector2d newPosition){
+        Animal movedAnimal = animals.get(oldPosition);
+        animals.remove(oldPosition);
+        animals.put(newPosition, movedAnimal);
     }
 }
