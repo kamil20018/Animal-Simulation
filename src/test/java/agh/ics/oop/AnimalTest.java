@@ -10,7 +10,7 @@ public class AnimalTest {
         IWorldMap map = new RectangularMap(4, 4);
         Vector2d initialPosition = new Vector2d(2, 2);
         Animal cat = new Animal(map, initialPosition);
-        MoveDirection[] directions = parser.parse("f f f asdfe dkje r");
+        MoveDirection[] directions = parser.parse("f f f r");
         for(MoveDirection dir: directions){
             cat.move(dir);
         }
@@ -22,7 +22,7 @@ public class AnimalTest {
         }
         Assertions.assertEquals(cat.getPosition(), new Vector2d(0, 3));
         Assertions.assertEquals(cat.getDirection(), MapDirection.SOUTH);
-        directions = parser.parse("r a3f r b b b b b b b");
+        directions = parser.parse("r r b b b b b b b");
         for(MoveDirection dir: directions){
             cat.move(dir);
         }

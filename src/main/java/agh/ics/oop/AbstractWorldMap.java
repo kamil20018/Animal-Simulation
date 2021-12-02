@@ -17,7 +17,7 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
             animals.put(animalPos, animal);
             return true;
         }
-        return false;
+        throw new IllegalArgumentException(animalPos.toString() + " is unavailable for the animal");
     }
 
     public boolean isOccupied(Vector2d position){

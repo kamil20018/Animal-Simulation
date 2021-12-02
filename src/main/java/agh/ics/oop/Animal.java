@@ -3,7 +3,7 @@ package agh.ics.oop;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Animal {
+public class Animal implements IMapElement{
     private List<IPositionChangeObserver> observers= new LinkedList<>();
     private MapDirection direction = MapDirection.NORTH;
     private Vector2d position = new Vector2d(2, 2);

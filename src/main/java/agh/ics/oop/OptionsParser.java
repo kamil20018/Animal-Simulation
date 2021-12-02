@@ -25,6 +25,8 @@ public class OptionsParser {
                 case "right":
                     convertedInstructions.add(MoveDirection.RIGHT);
                     break;
+                default:
+                    throw new IllegalArgumentException(s + " is not legal move specification");
             }
         }
 
