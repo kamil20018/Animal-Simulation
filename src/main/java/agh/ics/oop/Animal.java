@@ -32,8 +32,12 @@ public class Animal implements IMapElement{
             case BACKWARD -> testSum = this.position.add(this.direction.toUnitVector().opposite());
         }
         if(testSum != null && map.canMoveTo(testSum)){
-            positionChanged(this.position, testSum);
+            Vector2d oldPosition = this.position;
             this.position = testSum;
+            System.out.println("animal moved");
+            System.out.println(oldPosition);
+            System.out.println(this.position);
+            positionChanged(oldPosition, testSum);
         }
 
     }

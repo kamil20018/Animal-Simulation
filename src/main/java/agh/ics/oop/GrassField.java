@@ -9,6 +9,7 @@ public class GrassField extends AbstractWorldMap{
 
     private Vector2d lowerLeft;
     private Vector2d upperRight;
+    private MapBoundary boundary = new MapBoundary();
     public GrassField(int grassCount){
         boolean taken = false;
         boolean placed = false;
@@ -24,9 +25,10 @@ public class GrassField extends AbstractWorldMap{
                     taken = false;
                 }
 
-
                 if(!taken){
-                    grasses.put(position, new Grass(position));
+                    Grass grass = new Grass(position);
+                    boundary.addObject(grass);
+                    grasses.put(position, grass);
                     placed = true;
                 }
             }
@@ -34,6 +36,15 @@ public class GrassField extends AbstractWorldMap{
         }
     }
 
+    public boolean place(Animal animal){
+        boolean placed = super.place(animal);
+        if (placed){
+            animal.addObserver(boundary);
+            boundary.addObject(animal);
+            return true;
+        }
+        throw new IllegalArgumentException(animal.getPosition().toString() + " is unavailable for the animal");
+    }
     public boolean canMoveTo(Vector2d position){
         if(animals.containsKey(position)){
             return false;
@@ -42,8 +53,9 @@ public class GrassField extends AbstractWorldMap{
     }
 
     public Vector2d[] getBounds(){
-        updateBounds();
-        return new Vector2d[]{lowerLeft, upperRight};
+        return boundary.getBounds();
+        //updateBounds();
+        //return new Vector2d[]{lowerLeft, upperRight};
     };
 
     private void updateBounds(){

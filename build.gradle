@@ -11,6 +11,10 @@ repositories {
     mavenCentral()
 }
 
+application {
+    mainClassName = 'agh.ics.oop.World'
+}
+
 javafx {
     version = "17"
     modules = [ 'javafx.controls' ]
@@ -20,9 +24,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
-application {
-    mainClassName = 'agh.ics.oop.World'
-}
+
 
 test {
     useJUnitPlatform()
