@@ -1,5 +1,7 @@
 package agh.ics.oop;
 
+import javafx.util.Pair;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,5 +57,16 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
         Animal movedAnimal = animals.get(oldPosition);
         animals.remove(oldPosition);
         animals.put(newPosition, movedAnimal);
+    }
+
+    public List<Pair<Vector2d, IMapElement>> getDrawables(){
+        List<Pair<Vector2d, IMapElement>> drawables = new LinkedList<>();
+        for(Vector2d key: grasses.keySet()) {
+            drawables.add(new Pair<>(key, grasses.get(key)));
+        }
+        for(Vector2d key: animals.keySet()){
+            drawables.add(new Pair<>(key, animals.get(key)));
+        }
+        return drawables;
     }
 }

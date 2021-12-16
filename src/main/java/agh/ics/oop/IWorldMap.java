@@ -1,5 +1,9 @@
 package agh.ics.oop;
 
+import javafx.util.Pair;
+
+import java.util.List;
+
 /**
  * The interface responsible for interacting with the map of the world.
  * Assumes that Vector2d and MoveDirection classes are defined.
@@ -45,4 +49,7 @@ public interface IWorldMap {
      * @return Object or null if the position is not occupied.
      */
     Object objectAt(Vector2d position);
+
+
+    List<Pair<Vector2d, IMapElement>> getDrawables();
 }

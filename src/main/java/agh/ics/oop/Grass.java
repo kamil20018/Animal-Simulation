@@ -13,4 +13,8 @@ public class Grass implements IMapElement{
     public String toString(){
         return "*";
     }
+
+    public String getImagePath(){
+        return "src/main/resources/grass.png";
+    }
 }

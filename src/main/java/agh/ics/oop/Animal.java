@@ -34,9 +34,6 @@ public class Animal implements IMapElement{
         if(testSum != null && map.canMoveTo(testSum)){
             Vector2d oldPosition = this.position;
             this.position = testSum;
-            System.out.println("animal moved");
-            System.out.println(oldPosition);
-            System.out.println(this.position);
             positionChanged(oldPosition, testSum);
         }
 
@@ -62,5 +59,19 @@ public class Animal implements IMapElement{
         for(IPositionChangeObserver observer: observers){
             observer.positionChanged(oldPos, newPos);
         }
+    }
+
+    public String getImagePath(){
+        switch (direction){
+            case NORTH:
+                return "src/main/resources/up.png";
+            case SOUTH:
+                return "src/main/resources/down.png";
+            case WEST:
+                return "src/main/resources/left.png";
+            case EAST:
+                return "src/main/resources/right.png";
+        }
+        return "";
     }
 }
