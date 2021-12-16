@@ -44,7 +44,7 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
         return null;
     }
 
-    abstract Vector2d[] getBounds();
+
 
     public String toString(){
         IWorldMap map = this;

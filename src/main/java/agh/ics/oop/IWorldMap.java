@@ -50,6 +50,7 @@ public interface IWorldMap {
      */
     Object objectAt(Vector2d position);
 
+    Vector2d[] getBounds();
 
     List<Pair<Vector2d, IMapElement>> getDrawables();
 }
