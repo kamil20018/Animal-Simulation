@@ -17,9 +17,6 @@ class RectangularMap extends AbstractWorldMap {
         if(!position.precedes(upperRight) || !position.follows(lowerLeft)){
             return false;
         }
-        if(isOccupied(position)){
-            return false;
-        }
         return true;
     }
 

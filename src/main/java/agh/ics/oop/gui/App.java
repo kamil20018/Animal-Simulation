@@ -30,7 +30,9 @@ public class App extends Application implements IPositionChangeObserver{
     private IWorldMap map;
     private Thread engineThread;
     public App app = this;
+    public Settings settings;
     public App(){
+        settings = new Settings(4, 100, 25);
         grid = new GridPane();
         grid.setStyle("-fx-grid-lines-visible: true");
         grid.setPadding(new Insets(20, 20, 20, 20));
@@ -44,23 +46,12 @@ public class App extends Application implements IPositionChangeObserver{
 
     public void start(Stage primaryStage){
         Button start = new Button("start");
-        TextField input = new TextField ("f b r l f f r r f f f f f f f f");
         EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e)
             {
-                //String instructions = getParameters().getRaw().get(0);
-                String instructions = input.getText();
-                out.println(instructions);
-                MoveDirection[] directions = new MoveDirection[] {};
-                try {
-                    directions = new OptionsParser().parse(instructions);
-
-                } catch (IllegalArgumentException a) {
-                    out.println(a);
-                }
-                map = new GrassField(10);
-                Vector2d[] positions = { new Vector2d(4,2), new Vector2d(4,3) };
-                SimulationEngine engine = new SimulationEngine(directions, map, positions, app, 500);
+                map = new GrassField(15, 12, 12);
+                Vector2d[] positions = { new Vector2d(4,2), new Vector2d(2,2), new Vector2d(3,2)};
+                SimulationEngine engine = new SimulationEngine(map, positions, app, 300);
                 engineThread = new Thread(engine);
                 engineThread.start();
             }
@@ -68,10 +59,7 @@ public class App extends Application implements IPositionChangeObserver{
         start.setOnAction(event);
 
 
-
-
-
-        VBox container = new VBox(grid, start, input);
+        VBox container = new VBox(grid, start);
         Scene scene = new Scene(container);
         primaryStage.setScene(scene);
         primaryStage.setWidth(600);
@@ -85,7 +73,7 @@ public class App extends Application implements IPositionChangeObserver{
         Platform.runLater(() -> {
             grid.getChildren().clear();
             grid.setStyle("-fx-grid-lines-visible: true");
-            out.println(map.toString());
+            //out.println(map.toString());
             Vector2d[] bounds = map.getBounds();
             int smallX = bounds[0].x;
             int smallY = bounds[0].y;

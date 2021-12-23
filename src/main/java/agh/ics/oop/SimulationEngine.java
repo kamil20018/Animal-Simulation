@@ -9,15 +9,14 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SimulationEngine implements IEngine, Runnable{
-    MoveDirection[] instructions;
+
     IWorldMap map;
     Vector2d[] initialPositions;
     App app;
     int moveDelay;
     private List<Animal> animals = new LinkedList<Animal>();
     private List<Vector2d> animalPositions = new LinkedList<>();
-    public SimulationEngine (MoveDirection[] instructions, IWorldMap map, Vector2d[] initialPositions, App app, int moveDelay){
-        this.instructions = instructions;
+    public SimulationEngine (IWorldMap map, Vector2d[] initialPositions, App app, int moveDelay){
         this.map = map;
         this.app = app;
         this.initialPositions = initialPositions;
@@ -35,26 +34,47 @@ public class SimulationEngine implements IEngine, Runnable{
 
     @Override
     public void run(){
-
         System.out.println("Thread started.");
-        int animalCount = animals.size();
-        int instructionCount = instructions.length;
-        for(int i = 0; i < instructionCount; i++){
-            app.updateGrid();
-            int index = i % animalCount;
-            animals.get(index).move(instructions[i]);
-            animalPositions.set(index, animals.get(index).getPosition());
+
+        app.updateGrid();
+        for(int i = 0; i < 1000; i++){
+            map.removeDead();
+            handleDead();
+            moveAnimals();
+            map.eat();
             try{
                 Thread.sleep(moveDelay);
             } catch (InterruptedException e){
                 System.out.println(e);
             }
+            app.updateGrid();
         }
-        System.out.println(map.toString());
+
+        //System.out.println(map.toString());
 
     }
 
     public List<Vector2d> getPositions(){
         return animalPositions;
+    }
+
+    private void handleDead(){
+        List<Integer> deadIndexes = new LinkedList<>();
+        for(int i = animals.size() - 1; i >= 0; i--){
+            if(animals.get(i).isDead()){
+                deadIndexes.add(i);
+            }
+        }
+        for(int deadIndex: deadIndexes){
+            animalPositions.remove(deadIndex);
+            animals.remove(deadIndex);
+        }
+    }
+    private void moveAnimals(){
+        int animalCount = animals.size();
+        for(int animalIndex = 0; animalIndex < animalCount; animalIndex++){
+            animals.get(animalIndex).move();
+            animalPositions.set(animalIndex, animals.get(animalIndex).getPosition());
+        }
     }
 }

@@ -53,4 +53,8 @@ public interface IWorldMap {
     Vector2d[] getBounds();
 
     List<Pair<Vector2d, IMapElement>> getDrawables();
+
+    void removeDead();
+
+    void eat();
 }
