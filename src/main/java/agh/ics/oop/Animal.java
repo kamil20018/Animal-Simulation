@@ -6,36 +6,24 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Animal implements IMapElement{
     private List<IPositionChangeObserver> observers= new LinkedList<>();
-    private Vector2d position = new Vector2d(2, 2);
+    private Vector2d position;
     private IWorldMap map;
-    private AnimalTracker tracker;
-    private boolean mapWrap;
     private int rotation;
     private final String genes;
     private int currentEnergy;
     private int age = 0;
     private int childCount = 0;
     private AnimalDirection dirManager = new AnimalDirection();
-    public Animal (IWorldMap map, Vector2d initialPosition, String genes, int startingEnergy, AnimalTracker tracker){
-        this.tracker = tracker;
+    public Animal (IWorldMap map, Vector2d initialPosition, String genes, int startingEnergy){
         currentEnergy = startingEnergy;
         this.genes = genes;
         this.rotation = ThreadLocalRandom.current().nextInt(0, 7 + 1); //temporary cuz no gene
         this.map = map;
-        if(map instanceof GrassField) {
-            mapWrap = true;
-        } else {
-            mapWrap = false;
-        }
         this.position = initialPosition;
     }
 
     public String toString(){
         return String.valueOf(this.rotation);
-    }
-
-    private boolean isAt(Vector2d position){
-        return this.position.equals(position);
     }
 
     public void move(){
@@ -84,10 +72,6 @@ public class Animal implements IMapElement{
 
     public void addObserver(IPositionChangeObserver observer){
         observers.add(observer);
-    }
-
-    private void removeObserver(IPositionChangeObserver observer){
-        observers.remove(observer);
     }
 
     private void positionChanged(Vector2d oldPos, Vector2d newPos){

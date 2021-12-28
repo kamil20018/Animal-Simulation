@@ -35,31 +35,54 @@ public class StatHandler {
     }
     private int deadAnimalsCount = 0;
     private int deadAnimalsLifespan = 0;
+    private float averageLifespan = 0;
     private List<Epoch> epochesData = new LinkedList<>();
 
+    private int animalCountSum = 0;
+    private int plantCountSum = 0;
+    private float averageEnergySum = 0;
+    private float childCountSum = 0;
+    private Float averageLifespanSum = 0f;
+    private int lastEpoch = 0;
     public void addEpoch(int epochNumber, int animalCount, int plantCount, float averageEnergy, float childCount, List<Integer> deadAnimalsAges){
         for(Integer age: deadAnimalsAges){
             deadAnimalsCount++;
             deadAnimalsLifespan += age;
         }
-        float averageLifespan = (float) deadAnimalsLifespan / deadAnimalsCount;
+        Float averageLifespan = (float) deadAnimalsLifespan / deadAnimalsCount;
+        this.averageLifespan = averageLifespan;
         Epoch epoch = new Epoch(epochNumber, animalCount, plantCount, averageEnergy, averageLifespan, childCount);
         epochesData.add(epoch);
+
+        animalCountSum += animalCount;
+        plantCountSum += plantCount;
+        averageEnergySum += averageEnergy;
+        childCountSum += childCount;
+        if(!averageLifespan.isNaN()){
+            averageLifespanSum += averageLifespan;
+        }
+
+        lastEpoch = epochNumber;
     }
 
     public void createDataFile() throws FileNotFoundException {
         File csv = new File("epoches-" + this.mapType +".csv");
         PrintWriter contents = new PrintWriter(csv);
-        contents.println("epoch, animal count, plant count, avg energy, child count, lifespan");
+        contents.println("epoch, animal count, plant count, avg energy, lifespan, child count");
         for(Epoch epoch: epochesData){
             contents.println(epoch.toString());
         }
+        float animalCountAvg = animalCountSum / lastEpoch;
+        float plantCountAvg = plantCountSum / lastEpoch;
+        float averageEnergyAvg = averageEnergySum / lastEpoch;
+        float childCountAvg = childCountSum / lastEpoch;
+        float averageLifespanAvg = averageLifespanSum / lastEpoch;
+        contents.println("average: animal count, plant count, average energy, average lifespan, child count");
+        contents.printf("%f, %f, %f, %f, %f\n", animalCountAvg, plantCountAvg, averageEnergyAvg, averageLifespanAvg, childCountAvg);
         contents.close();
     }
 
-    //animal count
-    //plant count
-    //average energy
-    //average lifespan for dead ones
-    //average kid count for alive ones
+    public Float getAverageLifespan(){
+        return averageLifespan;
+    }
 }

@@ -10,8 +10,10 @@ public class Settings {
     private static int MAP_WIDTH;
     private static int MAP_HEIGHT;
     private static int INIT_ANIMAL_COUNT;
+    private static boolean MAGICAL_EVO;
+    private static boolean MAGICAL_EVO_BOUNDED;
     private static float JUNGLE_RATIO;
-    public static final int GRAPH_DATA_CAP = 20;
+    public static final int GRAPH_DATA_CAP = 30;
     public static final float GRASS_CAP = 0.90f; //if grass covers >90% of the map we need to change the way it's placed
 
     private static boolean ENERGY_LOSS_SET = false;
@@ -21,6 +23,8 @@ public class Settings {
     private static boolean MAP_HEIGHT_SET = false;
     private static boolean JUNGLE_RATIO_SET = false;
     private static boolean INIT_ANIMAL_COUNT_SET = false;
+    private static boolean MAGICAL_EVO_SET = false;
+    private static boolean MAGICAL_EVO_BOUNDED_SET = false;
 
     public static void setEnergyLoss(int energyLoss){
         if(!ENERGY_LOSS_SET){
@@ -102,6 +106,44 @@ public class Settings {
 
     public static int getInitAnimalCount(){
         return INIT_ANIMAL_COUNT;
+    }
+
+    public static void setMagicalEvo(String evoType){
+        if(!MAGICAL_EVO_SET){
+            switch (evoType){
+                case "normal":
+                    MAGICAL_EVO = false;
+                    break;
+                case "magical":
+                    MAGICAL_EVO = true;
+                    break;
+            }
+        }
+        System.out.println(MAGICAL_EVO);
+        MAGICAL_EVO_SET = true;
+    }
+
+    public static boolean getMagicalEvo(){
+        return MAGICAL_EVO;
+    }
+
+    public static void setMagicalEvoBounded(String evoType){
+        if(!MAGICAL_EVO_BOUNDED_SET){
+            switch (evoType){
+                case "normal":
+                    MAGICAL_EVO_BOUNDED = false;
+                    break;
+                case "magical":
+                    MAGICAL_EVO_BOUNDED = true;
+                    break;
+            }
+        }
+        System.out.println(MAGICAL_EVO_BOUNDED);
+        MAGICAL_EVO_BOUNDED_SET = true;
+    }
+
+    public static boolean getMagicalEvoBounded(){
+        return MAGICAL_EVO_BOUNDED;
     }
 
     public static Vector2d getBounds(){

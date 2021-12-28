@@ -15,10 +15,11 @@ import static java.util.concurrent.ThreadLocalRandom.current;
 abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
     Map<Vector2d, List<Animal>> animals = new HashMap<>();
     Map<Vector2d, Grass> grasses = new HashMap<>();
-    int epoch = 0;
-    int grassCount = 0;
-    int jungleGrassCount = 0;
-    int animalCount = 0;
+    private int epoch = 0;
+    private int grassCount = 0;
+    private int jungleGrassCount = 0;
+    private int animalCount = 0;
+    private int magicalEvoCount = 0;
     private StatHandler statHandler = new StatHandler(this.getClass().getName());
     private List<Integer> deadAnimalAges = new LinkedList<>();
     public final Vector2d lowerLeft = new Vector2d(0, 0);
@@ -40,6 +41,9 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
 
     LineChart<Number, Number> averageEnergyGraph;
     public XYChart.Series averageEnergySeries = new XYChart.Series();
+
+    LineChart<Number, Number> averageLifespanGraph;
+    public XYChart.Series averageLifespanSeries = new XYChart.Series();
 
     public AbstractWorldMap(int grassCount, int width, int height){
         initGraphs();
@@ -68,10 +72,10 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
         animalCountGraph = initGraph("Animal count", animalCountGraph, animalCountSeries);
         grassCountGraph = initGraph("Grass count", grassCountGraph, grassCountSeries);
         averageEnergyGraph = initGraph("Average energy", averageEnergyGraph, averageEnergySeries);
+        averageLifespanGraph = initGraph("Average lifespan", averageLifespanGraph, averageLifespanSeries);
     }
 
     private LineChart<Number, Number> initGraph(String label, LineChart<Number, Number> chart, XYChart.Series series){
-        System.out.println("a;lkjfefjwa;lkfekaj;lkjf");
         NumberAxis xAxis= new NumberAxis();//AnimalCount
         xAxis.setLabel("time");
         xAxis.setAutoRanging(true);
@@ -83,6 +87,7 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
         chart = new LineChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
         chart.getData().add(series);
+        chart.setPrefHeight(200);
         return chart;
     }
 
@@ -109,28 +114,6 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
             return true;
         }
         throw new IllegalArgumentException(animalPos.toString() + " is unavailable for the animal");
-    }
-
-    public boolean isOccupied(Vector2d position){
-        if(animals.containsKey(position)){
-            return true;
-        }
-
-        if(grasses.containsKey(position)){
-            return true;
-        }
-        return false;
-    }
-
-    public Object objectAt(Vector2d position) {
-        if(animals.containsKey(position)){
-            return animals.get(position);
-        }
-
-        if(grasses.containsKey(position)){
-            return grasses.get(position);
-        }
-        return null;
     }
 
     public void positionChanged(Vector2d oldPosition, Vector2d newPosition){
@@ -235,7 +218,7 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
         }
     }
 
-    public List<Animal> breed(AnimalTracker tracker){
+    public List<Animal> breed(){
         List<Animal> toPlace = new LinkedList<>();
         GeneGenerator generator = new GeneGenerator();
         for(Vector2d key: animals.keySet()){
@@ -248,7 +231,7 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
                 if(parent1.getEnergy() >= minEnergy && parent2.getEnergy() >= minEnergy){
                     String genes = generator.generateChildGenes(parent1, parent2);
                     int energy = parent1.breed() + parent2.breed();
-                    Animal newBorn = new Animal(this, key, genes, energy, tracker);
+                    Animal newBorn = new Animal(this, key, genes, energy);
                     toPlace.add(newBorn);
                 }
             }
@@ -370,6 +353,17 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
                 averageEnergySeries.getData().remove(0);
             }
             averageEnergySeries.getData().add(new XYChart.Data(epoch, averageEnergy));
+
+            while(averageLifespanSeries.getData().size() > Settings.GRAPH_DATA_CAP){
+                averageLifespanSeries.getData().remove(0);
+            }
+            //System.out.println(statHandler.getAverageLifespan());
+            //System.out.println(statHandler.getAverageLifespan().isNaN());
+            Float averageLifespan = statHandler.getAverageLifespan();
+            if(averageLifespan.isNaN()){
+                averageLifespan = 0f;
+            }
+            averageLifespanSeries.getData().add(new XYChart.Data(epoch, averageLifespan));
         });
         this.statHandler.addEpoch(this.epoch, this.animalCount, this.grassCount, averageEnergy, averageChildren, this.deadAnimalAges);
     }
@@ -390,23 +384,21 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
         this.paused = !this.paused;
     }
 
-    public int getEpoch(){
-        return this.epoch;
+    public List<LineChart<Number, Number>> getGraphs(){
+        LinkedList<LineChart<Number, Number>> output = new LinkedList<>();
+        output.add(animalChildCountGraph);
+        output.add(animalCountGraph);
+        output.add(grassCountGraph);
+        output.add(averageEnergyGraph);
+        output.add(averageLifespanGraph);
+        return output;
     }
 
-    public LineChart<Number, Number> getAnimalChildCountGraph(){
-        return animalChildCountGraph;
+    public void magicalEvo(){
+        magicalEvoCount++;
     }
 
-    public LineChart<Number, Number> getAnimalCountGraph(){
-        return animalCountGraph;
-    }
-
-    public LineChart<Number, Number> getGrassCountGraph(){
-        return grassCountGraph;
-    }
-
-    public LineChart<Number, Number> getAverageEnergyGraph(){
-        return averageEnergyGraph;
+    public int getMagicalEvoCount(){
+        return magicalEvoCount;
     }
 }

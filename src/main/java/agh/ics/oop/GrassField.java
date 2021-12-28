@@ -1,10 +1,5 @@
 package agh.ics.oop;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import static java.util.concurrent.ThreadLocalRandom.current;
-
 public class GrassField extends AbstractWorldMap{
 
     public GrassField(int grassCount, int width, int height){

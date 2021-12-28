@@ -26,8 +26,7 @@ public class SimulationEngine implements IEngine, Runnable{
         for(Vector2d position : initialPositions){
             GeneGenerator generator = new GeneGenerator();
 
-            Animal animal = new Animal(map, position, generator.generateRandomGenes(), Settings.getStartingEnergy(), app.tracker);
-            animal.addObserver(app);
+            Animal animal = new Animal(map, position, generator.generateRandomGenes(), Settings.getStartingEnergy());
             boolean placed = map.place(animal);
             if(placed){
                 animals.add(animal);
@@ -45,11 +44,48 @@ public class SimulationEngine implements IEngine, Runnable{
                 handleDead();
                 moveAnimals();
                 map.eat();
-                toPlace = map.breed(app.tracker);
+                toPlace = map.breed();
                 for (Animal animal : toPlace) {
-                    animal.addObserver(app);
                     animals.add(animal);
                     animalPositions.add(animal.getPosition());
+                }
+
+
+                if(animals.size() == 5 && map.getMagicalEvoCount() < 3 && // magical evolution
+                        ((map instanceof GrassField && Settings.getMagicalEvo()) ||
+                        (map instanceof RectangularMap && Settings.getMagicalEvoBounded()))) {
+                    List<Animal> clones = new LinkedList<>();
+                    for(Animal animal: animals){
+                        boolean goodPos = false;
+                        Vector2d animalPos = null;
+                        while (!goodPos) {
+                            int x = ThreadLocalRandom.current().nextInt(0, Settings.getMapWidth());
+                            int y = ThreadLocalRandom.current().nextInt(0, Settings.getMapHeight());
+                            animalPos = new Vector2d(x, y);
+                            if (!animalPositions.contains(animalPos)) {
+                                animalPositions.add(animalPos);
+                                goodPos = true;
+                            }
+                        }
+                        Animal clone = new Animal(map, animalPos, animal.getGenes(), Settings.getStartingEnergy());
+                        clones.add(clone);
+                    }
+                    for(Animal clone: clones){
+                        animals.add(clone);
+                        map.place(clone);
+                        animalPositions.add(clone.getPosition());
+                    }
+                    map.magicalEvo();
+                    System.out.println(map.getClass().getName());
+                    System.out.println("magical evo happened");
+
+                    if(map instanceof GrassField){
+                        String text = "magical evolution happened in the unbounded map";
+                        app.popup(text);
+                    } else if(map instanceof RectangularMap){
+                        String text = "magical evolution happened int the bounded map";
+                        app.popup(text);
+                    }
                 }
                 map.growGrass();
                 if(map instanceof GrassField){
@@ -59,7 +95,6 @@ public class SimulationEngine implements IEngine, Runnable{
                 }
 
                 map.nextEpoch();
-                long end = System.currentTimeMillis();
                 try {
                     Thread.sleep(moveDelay);
                 } catch (InterruptedException e) {

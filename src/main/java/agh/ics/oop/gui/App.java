@@ -11,9 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -28,14 +26,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import static java.lang.String.valueOf;
 import static java.lang.System.out;
 
-public class App extends Application implements IPositionChangeObserver {
+public class App extends Application {
     private GridPane grid, boundedGrid;
     private IWorldMap map, boundedMap;
     private Thread engineThread, engineBoundedThread;
-    public AnimalTracker tracker;
-    private Animal trackedAnimal;
-    public App app = this;
-    public Settings settings;
+
     public App() {
         grid = new GridPane();
         grid.setStyle("-fx-grid-lines-visible: true");
@@ -45,16 +40,7 @@ public class App extends Application implements IPositionChangeObserver {
         boundedGrid.setStyle("-fx-background-color: #6E260E;");
     }
 
-
-
-
-    public void init() {
-
-
-    }
-
     public void start(Stage primaryStage) {
-
         TextField mapWidthInput = new TextField("12");
         TextField mapHeightInput = new TextField("12");
         TextField startEnergyInput = new TextField("200");
@@ -79,14 +65,31 @@ public class App extends Application implements IPositionChangeObserver {
         HBox jungleRatioBox = new HBox(jungleRatioInfo, jungleRatioInput);
         HBox initialAnimalsBox = new HBox(initialAnimalsInfo, initialAnimalsInput);
 
+        Label evoTypeInfo = new Label("Choose evolution type for unbounded and bounded maps respectively:");
+        ChoiceBox<String> evoType = new ChoiceBox<>();
+        evoType.getItems().add("normal");
+        evoType.getItems().add("magical");
+        evoType.setValue("normal");
+
+        ChoiceBox<String> evoTypeBounded = new ChoiceBox<>();
+        evoTypeBounded.getItems().add("normal");
+        evoTypeBounded.getItems().add("magical");
+        evoTypeBounded.setValue("normal");
+
         Button start = new Button("start");
 
-        VBox settings = new VBox(mapWidthBox, mapHeightBox, startEnergyBox, moveEnergyBox, plantEnergyBox, jungleRatioBox, initialAnimalsBox, start);
-        VBox mapContainer = new VBox(grid);
-        VBox boundedMapContainer = new VBox(boundedGrid);
-        HBox grids = new HBox(mapContainer, boundedMapContainer);
+        VBox settings = new VBox(
+                mapWidthBox, mapHeightBox, startEnergyBox, moveEnergyBox,
+                plantEnergyBox, jungleRatioBox, initialAnimalsBox, evoTypeInfo,
+                evoType, evoTypeBounded,
+                start
+        );
+        VBox mapContainer = new VBox(new Label("unbounded map"), grid);
+        VBox boundedMapContainer = new VBox(new Label("bounded map"),boundedGrid);
+        HBox grids = new HBox(new ScrollPane(mapContainer), new ScrollPane(boundedMapContainer));
         grids.setSpacing(10);
         VBox field = new VBox(grids, settings);
+
         EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 Settings.setMapWidth(Integer.parseInt(mapWidthInput.getText()));
@@ -96,6 +99,10 @@ public class App extends Application implements IPositionChangeObserver {
                 Settings.setEnergyLoss(Integer.parseInt(moveEnergyInput.getText()));
                 Settings.setStartingEnergy(Integer.parseInt(startEnergyInput.getText()));
                 Settings.setInitAnimalCount(Integer.parseInt(initialAnimalsInput.getText()));
+                out.println(evoType.getValue());
+                out.println(evoTypeBounded.getValue());
+                Settings.setMagicalEvo(evoType.getValue());
+                Settings.setMagicalEvoBounded(evoTypeBounded.getValue());
 
                 map = new GrassField(35, Settings.getMapWidth(), Settings.getMapHeight());
                 boundedMap = new RectangularMap(35, Settings.getMapWidth(), Settings.getMapHeight());
@@ -125,14 +132,14 @@ public class App extends Application implements IPositionChangeObserver {
                     boundedGrid.getRowConstraints().add(row);
                 }
                 for (int i = 0; i < Settings.getMapHeight(); i++) {
-                    ColumnConstraints col = new ColumnConstraints(30);
+                    ColumnConstraints col = new ColumnConstraints(20);
                     grid.getColumnConstraints().add(col);
                     boundedGrid.getColumnConstraints().add(col);
                 }
 
                 Vector2d[] positions = animalPositions.toArray(new Vector2d[0]);
-                SimulationEngine engine1 = new SimulationEngine(boundedMap, positions, app, 250);
-                SimulationEngine engine2 = new SimulationEngine(map, positions, app, 250);
+                SimulationEngine engine1 = new SimulationEngine(boundedMap, positions, App.this, 250);
+                SimulationEngine engine2 = new SimulationEngine(map, positions, App.this, 250);
 
                 EventHandler<ActionEvent> pause1 = new EventHandler<ActionEvent>() {
                     public void handle(ActionEvent e) {
@@ -147,7 +154,7 @@ public class App extends Application implements IPositionChangeObserver {
                 };
 
 
-                field.getChildren().remove(settings);
+                field.getChildren().remove(settings);//gridPane.prefWidthProperty().bind(root.widthProperty());
                 Button boundedPause = new Button("pause");
                 Button pause = new Button("pause");
                 Button getData = new Button("generate csv");
@@ -162,10 +169,14 @@ public class App extends Application implements IPositionChangeObserver {
                 mapContainer.getChildren().add(buttons);
                 boundedMapContainer.getChildren().add(boundedButtons);
 
-                mapContainer.getChildren().add(new HBox(map.getAnimalChildCountGraph(), map.getAnimalCountGraph()));
-                boundedMapContainer.getChildren().add(new HBox(boundedMap.getAnimalChildCountGraph(), boundedMap.getAnimalCountGraph()));
-                mapContainer.getChildren().add(new HBox(map.getGrassCountGraph(), map.getAverageEnergyGraph()));
-                boundedMapContainer.getChildren().add(new HBox(boundedMap.getGrassCountGraph(), boundedMap.getAverageEnergyGraph()));
+                for(LineChart<Number, Number> chart: map.getGraphs()){
+                    mapContainer.getChildren().add(chart);
+                }
+
+                for(LineChart<Number, Number> chart: boundedMap.getGraphs()){
+                    boundedMapContainer.getChildren().add(chart);
+                }
+
                 engineBoundedThread = new Thread(engine1);
                 engineBoundedThread.start();
                 engineThread = new Thread(engine2);
@@ -179,8 +190,6 @@ public class App extends Application implements IPositionChangeObserver {
         Scene scene = new Scene(field);
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
-        //primaryStage.setWidth(800);
-        //primaryStage.setHeight(600);
         primaryStage.show();
     }
 
@@ -240,9 +249,17 @@ public class App extends Application implements IPositionChangeObserver {
         });
     }
 
-    public void positionChanged(Vector2d oldPosition, Vector2d newPosition) {
-        //updateGrid();
+    public void popup(String text){
+        Platform.runLater(() -> {
+            Stage window = new Stage();
+            window.setTitle("Magical evolution happened");
+            Label label = new Label(text);
+            Scene scene = new Scene(label);
+            window.setMinWidth(100);
+            window.setMinHeight(50);
+            window.setScene(scene);
+            window.show();
+        });
     }
-
 
 }
