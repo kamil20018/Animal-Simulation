@@ -119,7 +119,6 @@ public class Settings {
                     break;
             }
         }
-        System.out.println(MAGICAL_EVO);
         MAGICAL_EVO_SET = true;
     }
 
@@ -138,7 +137,6 @@ public class Settings {
                     break;
             }
         }
-        System.out.println(MAGICAL_EVO_BOUNDED);
         MAGICAL_EVO_BOUNDED_SET = true;
     }
 

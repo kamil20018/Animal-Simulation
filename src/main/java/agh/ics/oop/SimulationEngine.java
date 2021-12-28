@@ -76,8 +76,6 @@ public class SimulationEngine implements IEngine, Runnable{
                         animalPositions.add(clone.getPosition());
                     }
                     map.magicalEvo();
-                    System.out.println(map.getClass().getName());
-                    System.out.println("magical evo happened");
 
                     if(map instanceof GrassField){
                         String text = "magical evolution happened in the unbounded map";

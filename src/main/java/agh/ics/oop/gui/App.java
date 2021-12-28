@@ -99,8 +99,6 @@ public class App extends Application {
                 Settings.setEnergyLoss(Integer.parseInt(moveEnergyInput.getText()));
                 Settings.setStartingEnergy(Integer.parseInt(startEnergyInput.getText()));
                 Settings.setInitAnimalCount(Integer.parseInt(initialAnimalsInput.getText()));
-                out.println(evoType.getValue());
-                out.println(evoTypeBounded.getValue());
                 Settings.setMagicalEvo(evoType.getValue());
                 Settings.setMagicalEvoBounded(evoTypeBounded.getValue());
 
