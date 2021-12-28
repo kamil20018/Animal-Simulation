@@ -2,6 +2,7 @@ package agh.ics.oop;
 
 import agh.ics.oop.gui.App;
 import javafx.application.Platform;
+import javafx.scene.chart.XYChart;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +15,7 @@ public class SimulationEngine implements IEngine, Runnable{
     Vector2d[] initialPositions;
     App app;
     int moveDelay;
+    public boolean paused = false;
     private List<Animal> animals = new LinkedList<Animal>();
     private List<Vector2d> animalPositions = new LinkedList<>();
     public SimulationEngine (IWorldMap map, Vector2d[] initialPositions, App app, int moveDelay){
@@ -22,7 +24,9 @@ public class SimulationEngine implements IEngine, Runnable{
         this.initialPositions = initialPositions;
         this.moveDelay = moveDelay;
         for(Vector2d position : initialPositions){
-            Animal animal = new Animal(map, position);
+            GeneGenerator generator = new GeneGenerator();
+
+            Animal animal = new Animal(map, position, generator.generateRandomGenes(), Settings.getStartingEnergy(), app.tracker);
             animal.addObserver(app);
             boolean placed = map.place(animal);
             if(placed){
@@ -34,24 +38,40 @@ public class SimulationEngine implements IEngine, Runnable{
 
     @Override
     public void run(){
-        System.out.println("Thread started.");
+        while(true) {
+            while(!map.isPaused()){
+                List<Animal> toPlace = new LinkedList<>();
+                map.removeDead();
+                handleDead();
+                moveAnimals();
+                map.eat();
+                toPlace = map.breed(app.tracker);
+                for (Animal animal : toPlace) {
+                    animal.addObserver(app);
+                    animals.add(animal);
+                    animalPositions.add(animal.getPosition());
+                }
+                map.growGrass();
+                if(map instanceof GrassField){
+                    app.updateGrid();
+                } else if(map instanceof RectangularMap){
+                    app.updateBoundedGrid();
+                }
 
-        app.updateGrid();
-        for(int i = 0; i < 1000; i++){
-            map.removeDead();
-            handleDead();
-            moveAnimals();
-            map.eat();
-            try{
-                Thread.sleep(moveDelay);
-            } catch (InterruptedException e){
+                map.nextEpoch();
+                long end = System.currentTimeMillis();
+                try {
+                    Thread.sleep(moveDelay);
+                } catch (InterruptedException e) {
+                    System.out.println(e);
+                }
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
                 System.out.println(e);
             }
-            app.updateGrid();
         }
-
-        //System.out.println(map.toString());
-
     }
 
     public List<Vector2d> getPositions(){
@@ -70,6 +90,7 @@ public class SimulationEngine implements IEngine, Runnable{
             animals.remove(deadIndex);
         }
     }
+
     private void moveAnimals(){
         int animalCount = animals.size();
         for(int animalIndex = 0; animalIndex < animalCount; animalIndex++){

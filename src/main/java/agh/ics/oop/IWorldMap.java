@@ -1,5 +1,6 @@
 package agh.ics.oop;
 
+import javafx.scene.chart.LineChart;
 import javafx.util.Pair;
 
 import java.util.List;
@@ -50,11 +51,28 @@ public interface IWorldMap {
      */
     Object objectAt(Vector2d position);
 
-    Vector2d[] getBounds();
-
     List<Pair<Vector2d, IMapElement>> getDrawables();
 
     void removeDead();
 
     void eat();
+
+    List<Animal> breed(AnimalTracker tracker);
+
+    void growGrass();
+
+    void nextEpoch();
+
+    void file();
+
+    boolean isPaused();
+
+    void changePaused();
+
+    int getEpoch();
+
+    LineChart<Number, Number> getAnimalCountGraph();
+    LineChart<Number, Number> getAnimalChildCountGraph();
+    LineChart<Number, Number> getGrassCountGraph();
+    LineChart<Number, Number> getAverageEnergyGraph();
 }

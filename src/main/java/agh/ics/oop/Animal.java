@@ -6,20 +6,20 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Animal implements IMapElement{
     private List<IPositionChangeObserver> observers= new LinkedList<>();
-    private MapDirection direction = MapDirection.NORTH;
     private Vector2d position = new Vector2d(2, 2);
     private IWorldMap map;
+    private AnimalTracker tracker;
     private boolean mapWrap;
     private int rotation;
-    private final int maxEnergy;
-    private final int energyLoss;
-    private final int grassEnergyGain;
-    private int currentEnergy = 100;
+    private final String genes;
+    private int currentEnergy;
+    private int age = 0;
+    private int childCount = 0;
     private AnimalDirection dirManager = new AnimalDirection();
-    public Animal (IWorldMap map, Vector2d initialPosition){
-        maxEnergy = Settings.getMaxEnergy();
-        energyLoss = Settings.getEnergyLoss();
-        grassEnergyGain = Settings.getGrassEnergyGain();
+    public Animal (IWorldMap map, Vector2d initialPosition, String genes, int startingEnergy, AnimalTracker tracker){
+        this.tracker = tracker;
+        currentEnergy = startingEnergy;
+        this.genes = genes;
         this.rotation = ThreadLocalRandom.current().nextInt(0, 7 + 1); //temporary cuz no gene
         this.map = map;
         if(map instanceof GrassField) {
@@ -28,7 +28,6 @@ public class Animal implements IMapElement{
             mapWrap = false;
         }
         this.position = initialPosition;
-        this.direction = MapDirection.NORTH;
     }
 
     public String toString(){
@@ -40,8 +39,9 @@ public class Animal implements IMapElement{
     }
 
     public void move(){
+        age++;
         Vector2d testSum = null;
-        int dir = ThreadLocalRandom.current().nextInt(0, 7 + 1); //temporary cuz no gene
+        int dir = chooseDir();
         if (dir == 0){
             testSum = this.position.add(dirManager.getMovementVector(this.rotation));
         } else if (dir == 4){
@@ -52,7 +52,7 @@ public class Animal implements IMapElement{
 
         if(testSum != null && map.canMoveTo(testSum)){
             Vector2d oldPosition = this.position;
-            Vector2d upperBound = map.getBounds()[1];
+            Vector2d upperBound = Settings.getBounds();
 
             if(testSum.x > upperBound.x){
                 testSum = new Vector2d(testSum.x % upperBound.x, testSum.y);
@@ -73,8 +73,9 @@ public class Animal implements IMapElement{
         handleEnergy();
     }
 
-    public MapDirection getDirection(){
-        return this.direction;
+    private int chooseDir(){
+        int genePart = ThreadLocalRandom.current().nextInt(0, Settings.GENE_LENGTH);
+        return Character.getNumericValue(this.genes.charAt(genePart));
     }
 
     public Vector2d getPosition() {
@@ -95,38 +96,61 @@ public class Animal implements IMapElement{
         }
     }
 
-    public String getImagePath(){
-        switch (direction){
-            case NORTH:
-                return "src/main/resources/up.png";
-            case SOUTH:
-                return "src/main/resources/down.png";
-            case WEST:
-                return "src/main/resources/left.png";
-            case EAST:
-                return "src/main/resources/right.png";
-        }
-        return "";
-    }
-
     public boolean isDead(){
         if (this.currentEnergy <= 0){
-            System.out.println("died");
             return true;
         }
         return false;
     }
 
     private void handleEnergy(){
-        this.currentEnergy -= this.energyLoss;
+        this.currentEnergy -= Settings.getEnergyLoss();
     }
 
     public void eat(){
-        this.currentEnergy += grassEnergyGain;
-        System.out.println("just ate: " + String.valueOf(currentEnergy));
+        this.currentEnergy += Settings.getGrassEnergyGain();
     }
 
     public int getEnergy(){
         return this.currentEnergy;
+    }
+
+    public String getGenes(){
+        return genes;
+    }
+
+    public int getChildCount(){
+        return this.childCount;
+    }
+
+    public int getAge() {
+        return this.age;
+    }
+
+    public int breed(){
+        int transferredEnergy = this.currentEnergy / 4;
+        this.currentEnergy -= transferredEnergy;
+        this.childCount++;
+        return transferredEnergy;
+    }
+
+    public String getColor(){ //returns animal color in hex depending on the energy %. Lower energy -> brighter color
+        if(currentEnergy >= Settings.getStartingEnergy()){
+            return "FFFFFF";
+        }
+        String output = "ff";
+        float energyPart = (float)currentEnergy / Settings.getStartingEnergy();
+        String hexCap = "FF";
+        int cap = Integer.parseInt(hexCap, 16);
+        int currPart = Math.round(cap * (1 - energyPart));
+        String opacity = Integer.toHexString(currPart);
+        int toFill = 2 - opacity.length();
+        String filler = "";
+        for(int x = 0; x < toFill; x++){
+            filler += "0";
+        }
+        String colVal = filler + Integer.toHexString(currPart);
+        output = output + colVal + colVal;
+        return output;
     }
 }

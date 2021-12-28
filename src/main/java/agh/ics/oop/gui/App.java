@@ -8,105 +8,235 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
 import java.io.FileNotFoundException;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.valueOf;
 import static java.lang.System.out;
 
-public class App extends Application implements IPositionChangeObserver{
-    private GridPane grid;
-    private IWorldMap map;
-    private Thread engineThread;
+public class App extends Application implements IPositionChangeObserver {
+    private GridPane grid, boundedGrid;
+    private IWorldMap map, boundedMap;
+    private Thread engineThread, engineBoundedThread;
+    public AnimalTracker tracker;
+    private Animal trackedAnimal;
     public App app = this;
     public Settings settings;
-    public App(){
-        settings = new Settings(4, 100, 25);
+    public App() {
         grid = new GridPane();
         grid.setStyle("-fx-grid-lines-visible: true");
-        grid.setPadding(new Insets(20, 20, 20, 20));
+        grid.setStyle("-fx-background-color: #6E260E;");
+        boundedGrid = new GridPane();
+        boundedGrid.setStyle("-fx-grid-lines-visible: true");
+        boundedGrid.setStyle("-fx-background-color: #6E260E;");
     }
 
 
-    public void init(){
+
+
+    public void init() {
 
 
     }
 
-    public void start(Stage primaryStage){
+    public void start(Stage primaryStage) {
+
+        TextField mapWidthInput = new TextField("12");
+        TextField mapHeightInput = new TextField("12");
+        TextField startEnergyInput = new TextField("200");
+        TextField moveEnergyInput = new TextField("5");
+        TextField plantEnergyInput = new TextField("25");
+        TextField jungleRatioInput = new TextField("0.5");
+        TextField initialAnimalsInput = new TextField("10");
+
+        Label mapWidthInfo = new Label(" map width: ");
+        Label mapHeightInfo = new Label(" map height: ");
+        Label startEnergyInfo = new Label(" start energy: ");
+        Label moveEnergyInfo = new Label(" move energy: ");
+        Label plantEnergyInfo = new Label(" plant energy: ");
+        Label jungleRatioInfo = new Label(" jungle ratio: ");
+        Label initialAnimalsInfo = new Label(" initial animal count: ");
+
+        HBox mapWidthBox = new HBox(mapWidthInfo, mapWidthInput);
+        HBox mapHeightBox = new HBox(mapHeightInfo, mapHeightInput);
+        HBox startEnergyBox = new HBox(startEnergyInfo, startEnergyInput);
+        HBox moveEnergyBox = new HBox(moveEnergyInfo, moveEnergyInput);
+        HBox plantEnergyBox = new HBox(plantEnergyInfo, plantEnergyInput);
+        HBox jungleRatioBox = new HBox(jungleRatioInfo, jungleRatioInput);
+        HBox initialAnimalsBox = new HBox(initialAnimalsInfo, initialAnimalsInput);
+
         Button start = new Button("start");
+
+        VBox settings = new VBox(mapWidthBox, mapHeightBox, startEnergyBox, moveEnergyBox, plantEnergyBox, jungleRatioBox, initialAnimalsBox, start);
+        VBox mapContainer = new VBox(grid);
+        VBox boundedMapContainer = new VBox(boundedGrid);
+        HBox grids = new HBox(mapContainer, boundedMapContainer);
+        grids.setSpacing(10);
+        VBox field = new VBox(grids, settings);
         EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e)
-            {
-                map = new GrassField(15, 12, 12);
-                Vector2d[] positions = { new Vector2d(4,2), new Vector2d(2,2), new Vector2d(3,2)};
-                SimulationEngine engine = new SimulationEngine(map, positions, app, 300);
-                engineThread = new Thread(engine);
+            public void handle(ActionEvent e) {
+                Settings.setMapWidth(Integer.parseInt(mapWidthInput.getText()));
+                Settings.setMapHeight(Integer.parseInt(mapHeightInput.getText()));
+                Settings.setGrassEnergyGain(Integer.parseInt(plantEnergyInput.getText()));
+                Settings.setJungleRatio(Float.parseFloat(jungleRatioInput.getText()));
+                Settings.setEnergyLoss(Integer.parseInt(moveEnergyInput.getText()));
+                Settings.setStartingEnergy(Integer.parseInt(startEnergyInput.getText()));
+                Settings.setInitAnimalCount(Integer.parseInt(initialAnimalsInput.getText()));
+
+                map = new GrassField(35, Settings.getMapWidth(), Settings.getMapHeight());
+                boundedMap = new RectangularMap(35, Settings.getMapWidth(), Settings.getMapHeight());
+
+
+                List<Vector2d> animalPositions = new LinkedList<>();
+                for (int i = 0; i < Settings.getInitAnimalCount(); i++) {
+                    boolean placed = false;
+                    while (!placed) {
+                        int x = ThreadLocalRandom.current().nextInt(0, Settings.getMapWidth());
+                        int y = ThreadLocalRandom.current().nextInt(0, Settings.getMapHeight());
+                        Vector2d testPos = new Vector2d(x, y);
+                        if (!animalPositions.contains(testPos)) {
+                            animalPositions.add(testPos);
+                            placed = true;
+                        }
+                    }
+                }
+
+                grid.setStyle("-fx-grid-lines-visible: true");
+                grid.setStyle("-fx-background-color: #6E260E;");
+                boundedGrid.setStyle("-fx-grid-lines-visible: true");
+                boundedGrid.setStyle("-fx-background-color: #6E260E;");
+                for (int i = 0; i < Settings.getMapHeight(); i++) {
+                    RowConstraints row = new RowConstraints(30);
+                    grid.getRowConstraints().add(row);
+                    boundedGrid.getRowConstraints().add(row);
+                }
+                for (int i = 0; i < Settings.getMapHeight(); i++) {
+                    ColumnConstraints col = new ColumnConstraints(30);
+                    grid.getColumnConstraints().add(col);
+                    boundedGrid.getColumnConstraints().add(col);
+                }
+
+                Vector2d[] positions = animalPositions.toArray(new Vector2d[0]);
+                SimulationEngine engine1 = new SimulationEngine(boundedMap, positions, app, 250);
+                SimulationEngine engine2 = new SimulationEngine(map, positions, app, 250);
+
+                EventHandler<ActionEvent> pause1 = new EventHandler<ActionEvent>() {
+                    public void handle(ActionEvent e) {
+                        boundedMap.changePaused();
+                    }
+                };
+
+                EventHandler<ActionEvent> pause2 = new EventHandler<ActionEvent>() {
+                    public void handle(ActionEvent e) {
+                        map.changePaused();
+                    }
+                };
+
+
+                field.getChildren().remove(settings);
+                Button boundedPause = new Button("pause");
+                Button pause = new Button("pause");
+                Button getData = new Button("generate csv");
+                getData.setOnAction(getDataEvent);
+                Button getBoundedData = new Button("generate csv");
+                getBoundedData.setOnAction(getBoundedDataEvent);
+                pause.setOnAction(pause2);
+                boundedPause.setOnAction(pause1);
+                HBox buttons = new HBox(pause,getData);
+                HBox boundedButtons = new HBox(boundedPause, getBoundedData);
+
+                mapContainer.getChildren().add(buttons);
+                boundedMapContainer.getChildren().add(boundedButtons);
+
+                mapContainer.getChildren().add(new HBox(map.getAnimalChildCountGraph(), map.getAnimalCountGraph()));
+                boundedMapContainer.getChildren().add(new HBox(boundedMap.getAnimalChildCountGraph(), boundedMap.getAnimalCountGraph()));
+                mapContainer.getChildren().add(new HBox(map.getGrassCountGraph(), map.getAverageEnergyGraph()));
+                boundedMapContainer.getChildren().add(new HBox(boundedMap.getGrassCountGraph(), boundedMap.getAverageEnergyGraph()));
+                engineBoundedThread = new Thread(engine1);
+                engineBoundedThread.start();
+                engineThread = new Thread(engine2);
                 engineThread.start();
+
             }
         };
         start.setOnAction(event);
 
 
-        VBox container = new VBox(grid, start);
-        Scene scene = new Scene(container);
+        Scene scene = new Scene(field);
         primaryStage.setScene(scene);
-        primaryStage.setWidth(600);
-        primaryStage.setHeight(600);
+        primaryStage.setMaximized(true);
+        //primaryStage.setWidth(800);
+        //primaryStage.setHeight(600);
         primaryStage.show();
-        positionChanged(new Vector2d(1,1), new Vector2d(1, 1));
-
     }
+
+    EventHandler<ActionEvent> getDataEvent = new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent e) {
+            if(map.isPaused()){
+                map.file();
+            }
+        }
+    };
+
+    EventHandler<ActionEvent> getBoundedDataEvent = new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent e) {
+            if(map.isPaused()){
+                boundedMap.file();
+            }
+        }
+    };
+
 
     public void updateGrid(){
         Platform.runLater(() -> {
             grid.getChildren().clear();
-            grid.setStyle("-fx-grid-lines-visible: true");
-            //out.println(map.toString());
-            Vector2d[] bounds = map.getBounds();
-            int smallX = bounds[0].x;
-            int smallY = bounds[0].y;
-            int bigX = bounds[1].x;
-            int bigY = bounds[1].y;
-            int boardWidth = bigX - smallX + 1;
-            int boardHeight = bigY - smallY + 1;
             List<Pair<Vector2d, IMapElement>> drawables = map.getDrawables();
-            for(Pair<Vector2d, IMapElement> drawable: drawables){
-                GuiElementBox elementBox = null;
-                try {
-                    elementBox = new GuiElementBox(drawable.getValue());
-                } catch (FileNotFoundException e) {
-                    out.println(e);
+            for(Pair<Vector2d, IMapElement> drawable: drawables) {
+                Button button = new Button();
+                button.setMaxSize(10, 10);
+                if(drawable.getValue() instanceof Grass){
+                    button.setStyle("-fx-background-color: #00ff00;");
+                } else {
+                    Animal currAnimal = (Animal)drawable.getValue();
+                    button.setStyle("-fx-background-color: " + currAnimal.getColor() + ";");
                 }
-                VBox box = elementBox.getBox();
-                GridPane.setConstraints(box, drawable.getKey().x - smallX + 1,boardHeight - (drawable.getKey().y - smallY));
-                grid.getChildren().add(box);
-            }
-            for(int i = 0; i < boardWidth; i++){
-                Label l1 = new Label(String.valueOf(i + smallX));
-                GridPane.setConstraints(l1, i + 1, 0);
-                grid.getChildren().add(l1);
-            }
-            for(int i = 0; i < boardHeight; i++){
-                Label l1 = new Label(String.valueOf(bigY - i));
-                GridPane.setConstraints(l1, 0, i + 1);
-                grid.getChildren().add(l1);
-            }
+                GridPane.setConstraints(button, drawable.getKey().x, drawable.getKey().y);
+                grid.getChildren().add(button);
 
-            Label l1 = new Label("y/x");
-            GridPane.setConstraints(l1, 0, 0);
-            grid.getChildren().add(l1);
+            }
+        });
+    }
+
+    public void updateBoundedGrid(){
+        Platform.runLater(() -> {
+            boundedGrid.getChildren().clear();
+            List<Pair<Vector2d, IMapElement>> drawables = boundedMap.getDrawables();
+            for(Pair<Vector2d, IMapElement> drawable: drawables) {
+                Button button = new Button();
+                button.setMaxSize(10, 10);
+                if(drawable.getValue() instanceof Grass){
+                    button.setStyle("-fx-background-color: #00ff00;");
+                } else {
+                    Animal currAnimal = (Animal)drawable.getValue();
+                    button.setStyle("-fx-background-color: " + currAnimal.getColor() + ";");
+                }
+                GridPane.setConstraints(button, drawable.getKey().x, drawable.getKey().y);
+                boundedGrid.getChildren().add(button);
+            }
         });
     }
 
