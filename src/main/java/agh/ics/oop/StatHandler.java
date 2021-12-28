@@ -44,13 +44,22 @@ public class StatHandler {
     private float childCountSum = 0;
     private Float averageLifespanSum = 0f;
     private int lastEpoch = 0;
-    public void addEpoch(int epochNumber, int animalCount, int plantCount, float averageEnergy, float childCount, List<Integer> deadAnimalsAges){
+    public void addEpoch(int epochNumber, int animalCount, int plantCount, Float averageEnergy, Float childCount, List<Integer> deadAnimalsAges){
         for(Integer age: deadAnimalsAges){
             deadAnimalsCount++;
             deadAnimalsLifespan += age;
         }
         Float averageLifespan = (float) deadAnimalsLifespan / deadAnimalsCount;
+        if(averageLifespan.isNaN()){
+            averageLifespan = 0f;
+        }
         this.averageLifespan = averageLifespan;
+        if(averageEnergy.isNaN()){
+            averageEnergy = 0f;
+        }
+        if(childCount.isNaN()){
+            childCount = 0f;
+        }
         Epoch epoch = new Epoch(epochNumber, animalCount, plantCount, averageEnergy, averageLifespan, childCount);
         epochesData.add(epoch);
 
