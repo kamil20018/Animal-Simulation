@@ -108,7 +108,7 @@ public class Settings {
         return INIT_ANIMAL_COUNT;
     }
 
-    public static void setMagicalEvo(String evoType){
+    public static void setMagicalEvo(String evoType){   // co właściwie robi ta metoda?
         if(!MAGICAL_EVO_SET){
             switch (evoType){
                 case "normal":

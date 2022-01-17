@@ -8,10 +8,12 @@ import java.util.List;
 
 public class StatHandler {
     private String mapType;
-    public StatHandler(String mapType){
+
+    public StatHandler(String mapType) {
         this.mapType = mapType;
     }
-    private class Epoch {
+
+    private static class Epoch {
         private int epochNumber;
         private int animalCount;
         private int plantCount;
@@ -19,7 +21,7 @@ public class StatHandler {
         private float averageLifespan;
         private float childCount;
 
-        Epoch(int epochNumber, int animalCount, int plantCount, float averageEnergy, float averageLifespan, float childCount){
+        Epoch(int epochNumber, int animalCount, int plantCount, float averageEnergy, float averageLifespan, float childCount) {
             this.epochNumber = epochNumber;
             this.animalCount = animalCount;
             this.plantCount = plantCount;
@@ -28,11 +30,12 @@ public class StatHandler {
             this.childCount = childCount;
         }
 
-        public String toString(){
+        public String toString() {
             return String.format("%d, %d, %d, %f, %f, %f", epochNumber, animalCount, plantCount, averageEnergy, averageLifespan, childCount);
         }
 
     }
+
     private int deadAnimalsCount = 0;
     private int deadAnimalsLifespan = 0;
     private float averageLifespan = 0;
@@ -44,20 +47,21 @@ public class StatHandler {
     private float childCountSum = 0;
     private Float averageLifespanSum = 0f;
     private int lastEpoch = 0;
-    public void addEpoch(int epochNumber, int animalCount, int plantCount, Float averageEnergy, Float childCount, List<Integer> deadAnimalsAges){
-        for(Integer age: deadAnimalsAges){
+
+    public void addEpoch(int epochNumber, int animalCount, int plantCount, Float averageEnergy, Float childCount, List<Integer> deadAnimalsAges) {  // nie lepiej tu przyjąć Epoch?
+        for (Integer age : deadAnimalsAges) {
             deadAnimalsCount++;
             deadAnimalsLifespan += age;
         }
         Float averageLifespan = (float) deadAnimalsLifespan / deadAnimalsCount;
-        if(averageLifespan.isNaN()){
+        if (averageLifespan.isNaN()) {
             averageLifespan = 0f;
         }
         this.averageLifespan = averageLifespan;
-        if(averageEnergy.isNaN()){
+        if (averageEnergy.isNaN()) {
             averageEnergy = 0f;
         }
-        if(childCount.isNaN()){
+        if (childCount.isNaN()) {
             childCount = 0f;
         }
         Epoch epoch = new Epoch(epochNumber, animalCount, plantCount, averageEnergy, averageLifespan, childCount);
@@ -67,7 +71,7 @@ public class StatHandler {
         plantCountSum += plantCount;
         averageEnergySum += averageEnergy;
         childCountSum += childCount;
-        if(!averageLifespan.isNaN()){
+        if (!averageLifespan.isNaN()) {
             averageLifespanSum += averageLifespan;
         }
 
@@ -75,10 +79,10 @@ public class StatHandler {
     }
 
     public void createDataFile() throws FileNotFoundException {
-        File csv = new File("epoches-" + this.mapType +".csv");
+        File csv = new File("epoches-" + this.mapType + ".csv");
         PrintWriter contents = new PrintWriter(csv);
         contents.println("epoch, animal count, plant count, avg energy, lifespan, child count");
-        for(Epoch epoch: epochesData){
+        for (Epoch epoch : epochesData) {
             contents.println(epoch.toString());
         }
         float animalCountAvg = animalCountSum / lastEpoch;
@@ -91,7 +95,7 @@ public class StatHandler {
         contents.close();
     }
 
-    public Float getAverageLifespan(){
+    public Float getAverageLifespan() {
         return averageLifespan;
     }
 }

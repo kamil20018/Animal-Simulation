@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class GeneGenerator {
     public String generateRandomGenes(){ //7 losowań liczb od 1 do 31
-        int[] divs = new Random().ints(1, Settings.GENE_LENGTH).distinct().limit(7).toArray();
+        int[] divs = new Random().ints(1, Settings.GENE_LENGTH).distinct().limit(7).toArray();  // nowy obiekt co wywołanie
         String genes = "";
         Arrays.sort(divs);
         int index = 0;
@@ -13,7 +13,7 @@ public class GeneGenerator {
             if(index < 7 && i == divs[index]){
                 index++;
             }
-            genes += index;
+            genes += index; // StringBuilder
         }
         return genes;
     }

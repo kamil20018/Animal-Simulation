@@ -15,7 +15,7 @@ import static java.util.concurrent.ThreadLocalRandom.current;
 abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
     Map<Vector2d, List<Animal>> animals = new HashMap<>();
     Map<Vector2d, Grass> grasses = new HashMap<>();
-    private int epoch = 0;
+    private int epoch = 0;  // czemu mapa liczy epoki?
     private int grassCount = 0;
     private int jungleGrassCount = 0;
     private int animalCount = 0;
@@ -28,7 +28,7 @@ abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
     public final Vector2d jungleUpperRight;
     public final int area;
     public final int jungleArea;
-    private boolean paused = false;
+    private boolean paused = false; // j.w. - czy pauzujemy mapę, czy symulację?
 
     LineChart<Number, Number> animalChildCountGraph;
     public XYChart.Series animalChildCountSeries = new XYChart.Series();

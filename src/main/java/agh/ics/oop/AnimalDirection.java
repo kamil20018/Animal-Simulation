@@ -1,10 +1,10 @@
 package agh.ics.oop;
 
-public class AnimalDirection {
+public class AnimalDirection {  // ta klasa nie reprezentuje kierunku
     public Vector2d getMovementVector(int rotation){
         switch (rotation){
             case 0:
-                return new Vector2d(0, 1);
+                return new Vector2d(0, 1);  // nowy wektor co wywołanie
             case 1:
                 return new Vector2d(1, 1);
             case 2:
@@ -18,7 +18,7 @@ public class AnimalDirection {
             case 6:
                 return new Vector2d(-1, 0);
             default:
-                return new Vector2d(-1, 1);
+                return new Vector2d(-1, 1); // jak rotation będzie 20 to też?
         }
     }
 
